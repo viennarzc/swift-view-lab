@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: xcodebuild -version
+      - name: Build each library independently
+        run: |
+          xcodebuild -scheme StudySwiftUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/StudySwiftUI" CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -scheme StudyUIKit -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/StudyUIKit" CODE_SIGNING_ALLOWED=NO build
+      - name: Build gallery and UI tests
+        run: |
+          xcodebuild -project Examples/ComponentGallery/ComponentGallery.xcodeproj -scheme ComponentGallery -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ComponentGallery" CODE_SIGNING_ALLOWED=NO build-for-testing
