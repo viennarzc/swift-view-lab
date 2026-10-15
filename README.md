@@ -1,4 +1,4 @@
-# Components Studies
+# Swift View Lab
 
 A small laboratory for custom iOS interfaces: the same idea explored in **SwiftUI and UIKit**, with reusable components you can bring into your own apps.
 
@@ -10,7 +10,7 @@ A small laboratory for custom iOS interfaces: the same idea explored in **SwiftU
 
 ## Run the gallery
 
-1. Clone or download this repository.
+1. Clone [viennarzc/swift-view-lab](https://github.com/viennarzc/swift-view-lab) or download its source.
 2. Open `Examples/ComponentGallery/ComponentGallery.xcodeproj` in Xcode.
 3. Select the **ComponentGallery** scheme and an iPhone or iPad simulator, then Run.
 4. Open **Animated button** and switch between SwiftUI and UIKit. Title, enabled state, and action count stay shared.
@@ -33,9 +33,9 @@ Experiments live in the gallery. Components promoted for reuse live in the packa
 
 In your app's Xcode project, select **File → Add Package Dependencies → Add Local**, choose this repository's root directory, and add `StudySwiftUI`, `StudyUIKit`, or both to your app target.
 
-### Once this repository is published
+### From GitHub
 
-In **File → Add Package Dependencies**, paste this repository's GitHub clone URL. Until a version is tagged, select the `main` branch. After a release is tagged, use its version rule. There is no remote repository or release configured by this scaffold.
+In **File → Add Package Dependencies**, enter `https://github.com/viennarzc/swift-view-lab.git` and select the `main` branch. Add `StudySwiftUI`, `StudyUIKit`, or both to your app target. After a release is tagged, use its version rule.
 
 ```swift
 import SwiftUI
@@ -92,13 +92,11 @@ Run the shared scheme's UI test in Xcode with **Product → Test** on an iPhone 
 
 Before contributing, also check light/dark appearance, larger accessibility text, VoiceOver, and Reduce Motion. The GitHub Actions workflow builds both libraries separately and compiles the gallery and UI tests; it does not execute simulator tests.
 
-## Public release checklist
+## Release checklist
 
 1. Review source, screenshots, and attribution.
-2. Create an empty public GitHub repository named `Components-Studies`.
-3. Add its clone URL as this repository's `origin`, then push `main`.
-4. Confirm the Build workflow passes.
-5. Tag a release when you are ready to offer version-based package installation.
+2. Confirm the [Build workflow](https://github.com/viennarzc/swift-view-lab/actions/workflows/build.yml) passes.
+3. Tag a release when you are ready to offer version-based package installation.
 
 ## License
 
