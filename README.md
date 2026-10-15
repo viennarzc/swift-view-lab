@@ -23,6 +23,7 @@ For a physical device, choose your own development team and a unique bundle iden
 
 | Study | SwiftUI | UIKit | Status |
 | --- | --- | --- | --- |
+| [Thermostat dial](Documentation/Studies/ThermostatDial.md) | `StudyThermostatDial` | `StudyThermostatDial` | Reusable, experimental API |
 | [Animated button](Documentation/Studies/AnimatedButton.md) | `StudyButtonStyle` | `StudyButton` | Reusable, experimental API |
 
 Experiments live in the gallery. Components promoted for reuse live in the package. APIs may change before the first stable release.
@@ -88,9 +89,11 @@ xcodebuild -scheme StudyUIKit -destination 'generic/platform=iOS Simulator' CODE
 xcodebuild -project Examples/ComponentGallery/ComponentGallery.xcodeproj -scheme ComponentGallery -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
 ```
 
+Run package behavior tests with `xcodebuild -scheme ComponentsStudies-Package -destination 'platform=iOS Simulator,name=<your simulator>' CODE_SIGNING_ALLOWED=NO test`. These cover dial geometry, snapping, endpoint crossing, and UIKit event delivery.
+
 Run the shared scheme's UI test in Xcode with **Product → Test** on an iPhone and an iPad simulator. It checks single action delivery, shared state when switching frameworks, and disabled state in both versions.
 
-Before contributing, also check light/dark appearance, larger accessibility text, VoiceOver, and Reduce Motion. The GitHub Actions workflow builds both libraries separately and compiles the gallery and UI tests; it does not execute simulator tests.
+Before contributing, also check light/dark appearance, larger accessibility text, VoiceOver, and Reduce Motion. The GitHub Actions workflow builds both libraries separately and compiles the package tests, gallery, and UI tests; it does not execute simulator tests.
 
 ## Release checklist
 
