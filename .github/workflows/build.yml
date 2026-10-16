@@ -24,6 +24,8 @@ jobs:
         run: |
           xcodebuild -scheme StudySwiftUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/StudySwiftUI" CODE_SIGNING_ALLOWED=NO build
           xcodebuild -scheme StudyUIKit -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/StudyUIKit" CODE_SIGNING_ALLOWED=NO build
+      - name: Compile package behavior tests
+        run: xcodebuild -scheme ComponentsStudies-Package -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/PackageTests" CODE_SIGNING_ALLOWED=NO build-for-testing
       - name: Build gallery and UI tests
         run: |
           xcodebuild -project Examples/ComponentGallery/ComponentGallery.xcodeproj -scheme ComponentGallery -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ComponentGallery" CODE_SIGNING_ALLOWED=NO build-for-testing

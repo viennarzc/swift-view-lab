@@ -10,6 +10,8 @@ let package = Package(
     ],
     targets: [
         .target(name: "StudySwiftUI"),
-        .target(name: "StudyUIKit")
+        .target(name: "StudyUIKit"),
+        .testTarget(name: "StudySwiftUITests", dependencies: ["StudySwiftUI"]),
+        .testTarget(name: "StudyUIKitTests", dependencies: ["StudyUIKit"])
     ]
 )
