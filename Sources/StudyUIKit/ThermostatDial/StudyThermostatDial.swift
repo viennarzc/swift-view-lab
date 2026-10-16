@@ -214,8 +214,10 @@ import UIKit
         row.translatesAutoresizingMaskIntoConstraints = false
         addSubview(row)
         NSLayoutConstraint.activate([
-            row.leadingAnchor.constraint(equalTo: leadingAnchor), row.trailingAnchor.constraint(equalTo: trailingAnchor),
-            row.topAnchor.constraint(equalTo: topAnchor), row.bottomAnchor.constraint(equalTo: bottomAnchor)
+            // Center the stack at its intrinsic width; stretching it to the dial width
+            // makes UIStackView distribute spare space between the individual digits.
+            row.centerXAnchor.constraint(equalTo: centerXAnchor),
+            row.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
         sign.text = "−"
         sign.textAlignment = .center
