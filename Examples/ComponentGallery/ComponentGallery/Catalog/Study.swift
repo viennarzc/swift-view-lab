@@ -38,6 +38,13 @@ enum Study: String, CaseIterable, Identifiable {
         }
     }
 
+    var frameworkSummary: LocalizedStringResource {
+        switch self {
+        case .mechanicalRocker: "SwiftUI · 3 renderers"
+        case .thermostatDial, .animatedButton: "SwiftUI + UIKit"
+        }
+    }
+
     @MainActor @ViewBuilder var destination: some View {
         switch self {
         case .mechanicalRocker: MechanicalRockerSwitchStudyView()

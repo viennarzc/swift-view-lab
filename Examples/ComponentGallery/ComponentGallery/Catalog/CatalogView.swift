@@ -64,7 +64,7 @@ private struct StudyRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(study.title).font(.headline)
                 Text(study.summary).font(.subheadline).foregroundStyle(.secondary)
-                Text("SwiftUI + UIKit").font(.caption.weight(.medium)).foregroundStyle(.indigo)
+                Text(study.frameworkSummary).font(.caption.weight(.medium)).foregroundStyle(.indigo)
             }
         }
         .padding(.vertical, 8)
