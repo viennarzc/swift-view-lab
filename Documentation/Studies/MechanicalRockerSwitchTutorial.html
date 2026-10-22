@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A step-by-step SwiftUI study of Core Graphics, USDZ, and image-based mechanical rocker toggles.">
+  <title>Mechanical Rocker Switch: a SwiftUI rendering study</title>
+  <style>
+    :root { color-scheme: light dark; --paper: #f6f7fb; --ink: #1e2430; --muted: #5b6475; --line: #d7dbe5; --panel: #fff; --accent: #5065d9; --code: #19202f; --code-ink: #e7edff; --green: #118650; }
+    @media (prefers-color-scheme: dark) { :root { --paper: #11131a; --ink: #f0f2f8; --muted: #b4bbc9; --line: #303648; --panel: #1a1e29; --accent: #aebaff; --code: #090c12; --code-ink: #e7edff; --green: #62d49b; } }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; overflow-x: hidden; background: var(--paper); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 17px; line-height: 1.6; }
+    a { color: var(--accent); font-weight: 650; }
+    a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+    .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+    header { padding: 72px 0 42px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3, .lede { overflow-wrap: anywhere; }
+    h1, h2, h3 { line-height: 1.16; letter-spacing: -.03em; }
+    h1 { max-width: 800px; margin: 10px 0 18px; font-size: clamp(2.5rem, 7vw, 5rem); }
+    h2 { margin: 0 0 18px; font-size: clamp(1.7rem, 4vw, 2.5rem); }
+    h3 { margin: 24px 0 8px; font-size: 1.22rem; }
+    .lede { max-width: 710px; color: var(--muted); font-size: 1.18rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .chip { padding: 4px 11px; border: 1px solid var(--line); border-radius: 100px; color: var(--muted); font-size: .85rem; }
+    main { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 52px; padding: 40px 0 88px; }
+    nav { align-self: start; position: sticky; top: 20px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    nav strong { display: block; margin-bottom: 8px; }
+    nav ol { margin: 0; padding-left: 1.25rem; }
+    nav li { margin: 5px 0; font-size: .92rem; }
+    article { min-width: 0; }
+    section { padding: 34px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 20px; }
+    section:first-child { padding-top: 0; }
+    .callout { margin: 22px 0; padding: 18px 20px; border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; background: color-mix(in srgb, var(--accent) 9%, var(--panel)); }
+    .callout strong { display: block; }
+    pre { overflow-x: auto; margin: 18px 0; padding: 18px; border-radius: 14px; background: var(--code); color: var(--code-ink); font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    p code, li code { padding: .1em .3em; border-radius: 4px; background: color-mix(in srgb, var(--ink) 9%, transparent); font-size: .9em; }
+    .diagram { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0; }
+    .node { min-height: 96px; display: grid; place-items: center; padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); text-align: center; font-weight: 700; }
+    .node small { display: block; color: var(--muted); font-weight: 500; }
+    .arrow { color: var(--accent); font-size: 1.7rem; text-align: center; }
+    .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 22px 0; }
+    figure { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    figure img { display: block; width: 100%; border-radius: 8px; }
+    figcaption { padding: 10px 4px 2px; color: var(--muted); font-size: .88rem; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; background: var(--panel); }
+    th, td { padding: 13px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-size: .88rem; }
+    .checklist { padding-left: 0; list-style: none; }
+    .checklist li { margin: 9px 0; padding-left: 28px; position: relative; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 800; }
+    footer { padding: 28px 0 56px; color: var(--muted); font-size: .92rem; }
+    @media (max-width: 800px) { main { display: block; } nav { position: static; margin: 28px 0; } .screens { grid-template-columns: 1fr; max-width: 380px; } .diagram { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <div class="eyebrow">Swift View Lab · Rendering study</div>
+      <h1>Mechanical rocker switch</h1>
+      <p class="lede">One SwiftUI <code>Toggle</code>, three visual implementations: a resolution-independent drawing, a packaged USDZ scene, and exported images. Build each one in order, then choose the right tradeoff for your own interface.</p>
+      <div class="meta"><span class="chip">Swift 6</span><span class="chip">iOS 18+</span><span class="chip">SwiftUI</span><span class="chip">No third-party dependencies</span></div>
+    </div>
+  </header>
+  <main class="shell">
+    <nav aria-label="Tutorial sections">
+      <strong>In this study</strong>
+      <ol>
+        <li><a href="#shared-state">Share one state</a></li>
+        <li><a href="#core-graphics">Draw with Core Graphics</a></li>
+        <li><a href="#usdz">Render the USDZ scene</a></li>
+        <li><a href="#images">Crossfade images</a></li>
+        <li><a href="#choose">Choose a renderer</a></li>
+        <li><a href="#accessibility">Accessibility and checks</a></li>
+      </ol>
+    </nav>
+    <article>
+      <section id="shared-state">
+        <div class="eyebrow">Step 1</div>
+        <h2>Share one source of truth</h2>
+        <p>Each style receives the same <code>Binding&lt;Bool&gt;</code>. The selected renderer only presents that value; it does not own a second on/off state. That keeps the gallery’s power state intact while the reader switches between rendering techniques.</p>
+        <pre><code>struct PowerSettings: View {
+    @State private var isPowered = false
+
+    var body: some View {
+        Toggle("Main power", isOn: $isPowered)
+            .toggleStyle(StudyRockerToggleStyle())
+    }
+}</code></pre>
+        <div class="diagram" aria-label="State flow from Toggle binding to each renderer">
+          <div class="node">Binding&lt;Bool&gt;<small>owned by the screen</small></div><div class="arrow" aria-hidden="true">→</div><div class="node">ToggleStyle<small>native label, action, and value</small></div>
+        </div>
+        <p>The shared style wraps the label and visual rocker in one plain <code>Button</code>. A tap on either region changes the binding once; VoiceOver receives one control whose name comes from the visible toggle label.</p>
+      </section>
+
+      <section id="core-graphics">
+        <div class="eyebrow">Step 2</div>
+        <h2>Draw the rocker with Core Graphics</h2>
+        <p>The Core Graphics implementation starts with a fixed 116×78 design space, then scales every coordinate for the actual SwiftUI canvas. That makes the bevel, shadows, markings, and lamp sharp at any display size.</p>
+        <pre><code>let scale = min(size.width / 116, size.height / 78)
+let rockerRect = CGRect(
+    x: (size.width - 96 * scale) / 2,
+    y: (size.height - 64 * scale) / 2,
+    width: 96 * scale,
+    height: 64 * scale
+)
+let bezel = rockerRect.insetBy(dx: -8 * scale, dy: -7 * scale)</code></pre>
+        <h3>Animate a number, not a Boolean</h3>
+        <p><code>RockerCanvas</code> stores <code>progress</code> from 0 to 1. The Boolean updates that scalar over 180 milliseconds; the scalar moves the face six design points and controls the gradient direction and green indicator. With Reduce Motion enabled, it jumps directly to the destination.</p>
+        <pre><code>withAnimation(.easeInOut(duration: 0.18)) {
+    progress = isOn ? 1 : 0
+}
+
+let faceOffset = (0.5 - progress) * 6 * scale
+let face = rockerRect.offsetBy(dx: 0, dy: faceOffset)</code></pre>
+        <div class="callout"><strong>Drawing order matters.</strong> The code draws the recessed bezel and shadow first, clips and fills the moving face next, then adds I/O marks and the lamp. The marks use the face rectangle, so they move mechanically with it.</div>
+        <p>Use <code>StudyRockerToggleStyle()</code> when you want precise scalable artwork without a packaged scene or image asset. Read the complete <a href="../../Sources/StudySwiftUI/MechanicalRocker/StudyRockerToggleStyles.swift">Core Graphics implementation</a>.</p>
+      </section>
+
+      <section id="usdz">
+        <div class="eyebrow">Step 3</div>
+        <h2>Render and animate the USDZ scene</h2>
+        <p>The 3D version puts the bezel outside a named <code>RockerPivot</code>. The rocker face, I/O marks, and indicator are children of that pivot. Rotating the pivot tilts the moving assembly while leaving the recessed bezel still.</p>
+        <div class="diagram" aria-label="USDZ scene hierarchy">
+          <div class="node">Display root<small>normalization and user transform</small></div><div class="arrow" aria-hidden="true">→</div><div class="node">USDZ scene<small>Bezel + RockerPivot</small></div><div class="arrow" aria-hidden="true">→</div><div class="node">Rocker face / marks / lamp<small>move with pivot</small></div>
+        </div>
+        <h3>Load the package resource</h3>
+        <p><code>RealityView</code> loads the exact resource URL from <code>Bundle.module</code>. The model is oriented toward an explicit virtual camera, its visual bounds are normalized to a predictable size, and the gallery can apply a display position and rotation.</p>
+        <pre><code>guard let url = Bundle.module.url(
+    forResource: "MechanicalRocker", withExtension: "usdz"
+) else { return }
+
+let model = try await Entity(contentsOf: url)
+let bounds = model.visualBounds(relativeTo: nil)
+let displayScale: Float = 1 / largestExtent
+model.scale *= SIMD3(repeating: displayScale)</code></pre>
+        <h3>Move only the mechanical pivot</h3>
+        <p>When the binding changes, the implementation finds <code>RockerPivot</code>, stops any in-flight motion, and moves it to either endpoint: −12° for On or +12° for Off. This means fast repeated taps always end at the latest bound value.</p>
+        <pre><code>let angle: Float = isOn ? -0.20944 : 0.20944
+var destination = pivot.transform
+destination.rotation = simd_quatf(angle: angle, axis: [1, 0, 0])
+pivot.stopAllAnimations(recursive: false)
+pivot.move(to: destination, relativeTo: pivot.parent,
+           duration: 0.18, timingFunction: .easeInOut)</code></pre>
+        <p>The gallery exposes X/Y/Z position plus pitch, yaw, and roll sliders only for this renderer. They transform the display root, so they are useful for studying camera framing without changing the rocker’s own pivot behavior. If the USDZ resource cannot load, the public style retains a working static-image switch.</p>
+        <p>Use <code>StudyRocker3DToggleStyle(position:rotation:)</code> for the accessible toggle, or <code>StudyRocker3DModelView(isOn:position:rotation:)</code> for a decorative standalone model. Read the <a href="../../Sources/StudySwiftUI/MechanicalRocker/StudyRockerToggleStyles.swift">complete RealityKit implementation</a>.</p>
+      </section>
+
+      <section id="images">
+        <div class="eyebrow">Step 4</div>
+        <h2>Crossfade static exports</h2>
+        <p>The third implementation is intentionally simple: it loads matching off/on PNG exports from the package bundle and changes opacity. There is no scene graph, geometry calculation, or lighting update at runtime.</p>
+        <pre><code>ZStack {
+    RockerPNG(name: "MechanicalRocker-off")
+        .opacity(isOn ? 0 : 1)
+    RockerPNG(name: "MechanicalRocker-on")
+        .opacity(isOn ? 1 : 0)
+}
+.animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: isOn)</code></pre>
+        <p>Both PNGs use the same framing and transparent background as the original model. If an image is unavailable, the package draws a non-animated Core Graphics fallback so the control remains understandable. Use <code>StudyRockerImageToggleStyle()</code> when the visual is fixed and runtime cost is the priority.</p>
+      </section>
+
+      <section id="choose">
+        <div class="eyebrow">Step 5</div>
+        <h2>Choose for the job</h2>
+        <div class="screens" aria-label="ComponentGallery screenshots for each renderer">
+          <figure><img src="../Images/mechanical-rocker-core-graphics.png" alt="ComponentGallery displaying the mechanical rocker with the Core Graphics renderer selected"><figcaption>Core Graphics — generated at display size.</figcaption></figure>
+          <figure><img src="../Images/mechanical-rocker-usdz-3d.png" alt="ComponentGallery displaying the mechanical rocker with the USDZ 3D renderer selected"><figcaption>USDZ 3D — scene with pivot animation.</figcaption></figure>
+          <figure><img src="../Images/mechanical-rocker-static-images.png" alt="ComponentGallery displaying the mechanical rocker with the static images renderer selected"><figcaption>Static images — two exported PNGs.</figcaption></figure>
+        </div>
+        <table>
+          <thead><tr><th>Renderer</th><th>Strength</th><th>Tradeoff</th><th>Good fit</th></tr></thead>
+          <tbody>
+            <tr><td>Core Graphics</td><td>Small, crisp, easily parameterized</td><td>Lighting and depth are hand-authored</td><td>Custom controls that must scale freely</td></tr>
+            <tr><td>USDZ 3D</td><td>Physical depth, real pivot hierarchy</td><td>Resource loading and RealityKit setup</td><td>Product or appliance studies with meaningful perspective</td></tr>
+            <tr><td>Static images</td><td>Lowest rendering work and predictable art</td><td>Fixed viewpoints and less customization</td><td>Artwork-led controls with few visual states</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="accessibility">
+        <div class="eyebrow">Step 6</div>
+        <h2>Preserve native control behavior</h2>
+        <p>The custom appearance never replaces the native toggle semantics. The label remains visible for Dynamic Type and becomes the VoiceOver name. The style supplies the On/Off value, respects SwiftUI’s enabled environment, and has one hit target.</p>
+        <ul class="checklist">
+          <li>Toggle each renderer and verify exactly one binding change per activation.</li>
+          <li>Switch renderers and confirm the power state and activation count remain unchanged.</li>
+          <li>Disable the control and confirm visual dimming and blocked interaction.</li>
+          <li>Enable Reduce Motion and confirm the destination state appears without the 180 ms transition.</li>
+          <li>Check long labels, large Dynamic Type, VoiceOver activation, and light/dark appearance.</li>
+          <li>For USDZ, rapidly toggle during load and verify the final pivot matches the binding.</li>
+        </ul>
+        <div class="callout"><strong>Continue exploring.</strong> Open the <a href="../../Examples/ComponentGallery/ComponentGallery/Studies/MechanicalRocker/MechanicalRockerSwitchStudyView.swift">gallery study</a> to adjust the 3D display transform, or return to the <a href="MechanicalRockerSwitch.md">concise component reference</a> for setup and resource details.</div>
+      </section>
+    </article>
+  </main>
+  <footer class="shell">Original rocker artwork and USD resources are part of Swift View Lab and are covered by the repository’s MIT License.</footer>
+</body>
+</html>

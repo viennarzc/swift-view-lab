@@ -2,6 +2,8 @@
 
 The Mechanical Rocker Switch explores one appliance-style on/off control through three SwiftUI renderers. Each renderer presents a recessed black bezel, I/O markings, and a green on indicator while using the same `Binding<Bool>` supplied by a native `Toggle`.
 
+For a guided implementation walkthrough with renderer diagrams, focused Swift excerpts, and gallery screenshots, read the [step-by-step HTML tutorial](MechanicalRockerSwitchTutorial.html).
+
 ## Use
 
 ```swift

@@ -28,6 +28,8 @@ The gallery keeps each study's demo state above the framework switcher, so chang
 | [Animated button](Documentation/Studies/AnimatedButton.md) | `StudyButtonStyle` | `StudyButton` | Reusable, experimental API |
 | [Mechanical rocker switch](Documentation/Studies/MechanicalRockerSwitch.md) | Three `StudyRocker…ToggleStyle` types | — | Reusable, SwiftUI-only renderer study |
 
+The rocker also has a [step-by-step SwiftUI rendering tutorial](Documentation/Studies/MechanicalRockerSwitchTutorial.html) covering its Core Graphics, USDZ, and static-image implementations.
+
 Experiments live in the gallery. Components promoted for reuse live in the package. APIs may change before the first stable release.
 
 ## Use the components

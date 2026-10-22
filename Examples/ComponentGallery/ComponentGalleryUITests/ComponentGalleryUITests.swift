@@ -89,4 +89,33 @@ final class ComponentGalleryUITests: XCTestCase {
         rocker.tap()
         XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 2")
     }
+
+    /// Captures the three live gallery renderers used by the public HTML study.
+    /// Run this focused test when the rocker presentation changes, then export
+    /// the attachments into Documentation/Images before updating the tutorial.
+    func testMechanicalRockerDocumentationScreenshots() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+
+        app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Mechanical rocker")).firstMatch.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["mechanicalRocker"].waitForExistence(timeout: 5))
+        attachScreenshot(named: "mechanical-rocker-core-graphics")
+
+        app.segmentedControls.buttons["USDZ 3D"].tap()
+        // Wait for RealityKit's asynchronous resource load before recording.
+        XCTAssertTrue(app.staticTexts["State"].waitForExistence(timeout: 5))
+        sleep(1)
+        attachScreenshot(named: "mechanical-rocker-usdz-3d")
+
+        app.segmentedControls.buttons["Static images"].tap()
+        attachScreenshot(named: "mechanical-rocker-static-images")
+    }
+
+    private func attachScreenshot(named name: String) {
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
 }

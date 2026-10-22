@@ -11,7 +11,12 @@ public struct StudyRockerToggleStyle: ToggleStyle {
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
-        StudyRockerToggle(configuration: configuration, renderer: .coreGraphics)
+        StudyRockerToggle(
+            configuration: configuration,
+            renderer: .coreGraphics,
+            modelPosition: .zero,
+            modelRotation: .zero
+        )
     }
 }
 
@@ -21,10 +26,28 @@ public struct StudyRockerToggleStyle: ToggleStyle {
 /// the two electrical states. If the resource cannot load, this style displays
 /// the bundled static-image renderer so the toggle remains usable.
 public struct StudyRocker3DToggleStyle: ToggleStyle {
-    public init() {}
+    public let position: SIMD3<Float>
+    public let rotation: SIMD3<Float>
+
+    /// Creates a 3D rocker style with optional gallery-space adjustments.
+    /// - Parameters:
+    ///   - position: Translation in normalized scene units on the X, Y, and Z axes.
+    ///   - rotation: Pitch, yaw, and roll in degrees.
+    public init(
+        position: SIMD3<Float> = .zero,
+        rotation: SIMD3<Float> = .zero
+    ) {
+        self.position = position
+        self.rotation = rotation
+    }
 
     public func makeBody(configuration: Configuration) -> some View {
-        StudyRockerToggle(configuration: configuration, renderer: .model3D)
+        StudyRockerToggle(
+            configuration: configuration,
+            renderer: .model3D,
+            modelPosition: position,
+            modelRotation: rotation
+        )
     }
 }
 
@@ -37,7 +60,12 @@ public struct StudyRockerImageToggleStyle: ToggleStyle {
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
-        StudyRockerToggle(configuration: configuration, renderer: .staticImages)
+        StudyRockerToggle(
+            configuration: configuration,
+            renderer: .staticImages,
+            modelPosition: .zero,
+            modelRotation: .zero
+        )
     }
 }
 
@@ -50,6 +78,8 @@ private enum RockerRenderer {
 private struct StudyRockerToggle: View {
     let configuration: ToggleStyleConfiguration
     let renderer: RockerRenderer
+    let modelPosition: SIMD3<Float>
+    let modelRotation: SIMD3<Float>
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
@@ -65,7 +95,9 @@ private struct StudyRockerToggle: View {
                 RockerRendererView(
                     renderer: renderer,
                     isOn: configuration.isOn,
-                    reduceMotion: reduceMotion
+                    reduceMotion: reduceMotion,
+                    modelPosition: modelPosition,
+                    modelRotation: modelRotation
                 )
                 .frame(width: 116, height: 78)
                 .accessibilityHidden(true)
@@ -83,13 +115,19 @@ private struct RockerRendererView: View {
     let renderer: RockerRenderer
     let isOn: Bool
     let reduceMotion: Bool
+    let modelPosition: SIMD3<Float>
+    let modelRotation: SIMD3<Float>
 
     var body: some View {
         switch renderer {
         case .coreGraphics:
             RockerCanvas(isOn: isOn, reduceMotion: reduceMotion)
         case .model3D:
-            RockerRealityView(isOn: isOn, reduceMotion: reduceMotion)
+            StudyRocker3DModelView(
+                isOn: isOn,
+                position: modelPosition,
+                rotation: modelRotation
+            )
         case .staticImages:
             RockerStaticImage(isOn: isOn, reduceMotion: reduceMotion)
         }
@@ -201,30 +239,108 @@ private struct RockerPNG: View {
     }
 }
 
-private struct RockerRealityView: View {
-    let isOn: Bool
-    let reduceMotion: Bool
+/// A standalone RealityKit rendering of the bundled mechanical rocker USDZ.
+///
+/// Use this when the model is decorative or when building a custom control.
+/// For an accessible, interactive control, use ``StudyRocker3DToggleStyle``
+/// with SwiftUI's standard `Toggle`.
+public struct StudyRocker3DModelView: View {
+    public let isOn: Bool
+    public let position: SIMD3<Float>
+    public let rotation: SIMD3<Float>
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var didFailToLoad = false
 
-    var body: some View {
+    public init(
+        isOn: Bool,
+        position: SIMD3<Float> = .zero,
+        rotation: SIMD3<Float> = .zero
+    ) {
+        self.isOn = isOn
+        self.position = position
+        self.rotation = rotation
+    }
+
+    public var body: some View {
         Group {
             if didFailToLoad {
                 RockerStaticImage(isOn: isOn, reduceMotion: reduceMotion)
             } else {
                 RealityView { content in
                     do {
-                        let model = try await Entity(named: "MechanicalRocker", in: .module)
-                        content.add(model)
+                        // A package resource is a standalone USDZ. Load its exact
+                        // URL instead of relying on name-based scene lookup.
+                        guard let url = Bundle.module.url(
+                            forResource: "MechanicalRocker",
+                            withExtension: "usdz"
+                        ) else {
+                            didFailToLoad = true
+                            return
+                        }
+                        let displayRoot = Entity()
+                        displayRoot.name = "RockerDisplayRoot"
+                        let model = try await Entity(contentsOf: url)
+                        // USD uses Y as its up axis and this asset was authored
+                        // as a tabletop control. RealityView's virtual camera
+                        // looks forward along Z, so turn the face toward it
+                        // before framing the model with `cameraTarget`.
+                        model.orientation = simd_quatf(
+                            angle: .pi / 2,
+                            axis: SIMD3<Float>(1, 0, 0)
+                        )
+                        // Normalize the imported bounds, including the USD unit
+                        // conversion, instead of guessing a display scale.
+                        let bounds = model.visualBounds(relativeTo: nil)
+                        let largestExtent = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
+                        guard largestExtent.isFinite, largestExtent > 0 else {
+                            didFailToLoad = true
+                            return
+                        }
+                        let displayScale: Float = 1 / largestExtent
+                        model.scale *= SIMD3<Float>(repeating: displayScale)
+                        model.position -= bounds.center * displayScale
+                        displayRoot.addChild(model)
+                        applyDisplayTransform(to: displayRoot)
+
+                        // cameraTarget only applies to orbit controls. Supply a
+                        // real camera with a known pose for this fixed preview.
+                        content.camera = .virtual
+                        let camera = PerspectiveCamera()
+                        camera.camera.fieldOfViewInDegrees = 40
+                        camera.look(at: .zero, from: [0, 0, 2], relativeTo: nil)
+                        content.add(camera)
+                        content.add(displayRoot)
+                        content.environment = .default
+                        if let pivot = model.findEntity(named: "RockerPivot") {
+                            // `update` runs when SwiftUI state changes. Apply the
+                            // current binding here as well so the first loaded
+                            // frame never waits for a later update.
+                            setRockerState(on: pivot, isOn: isOn, reduceMotion: true)
+                        }
                     } catch {
                         didFailToLoad = true
                     }
                 } update: { content in
-                    guard let model = content.entities.first,
-                          let pivot = model.findEntity(named: "RockerPivot") else { return }
+                    guard let displayRoot = content.entities.first(where: { $0.name == "RockerDisplayRoot" }),
+                          let pivot = displayRoot.findEntity(named: "RockerPivot") else { return }
+                    applyDisplayTransform(to: displayRoot)
                     setRockerState(on: pivot, isOn: isOn, reduceMotion: reduceMotion)
+                }
+                placeholder: {
+                    RockerStaticImage(isOn: isOn, reduceMotion: true)
                 }
             }
         }
+    }
+
+    private func applyDisplayTransform(to displayRoot: Entity) {
+        displayRoot.position = position
+        let degreesToRadians: Float = .pi / 180
+        let pitch = simd_quatf(angle: rotation.x * degreesToRadians, axis: SIMD3<Float>(1, 0, 0))
+        let yaw = simd_quatf(angle: rotation.y * degreesToRadians, axis: SIMD3<Float>(0, 1, 0))
+        let roll = simd_quatf(angle: rotation.z * degreesToRadians, axis: SIMD3<Float>(0, 0, 1))
+        displayRoot.orientation = yaw * pitch * roll
     }
 
     private func setRockerState(on pivot: Entity, isOn: Bool, reduceMotion: Bool) {
@@ -233,10 +349,50 @@ private struct RockerRealityView: View {
         let angle: Float = isOn ? -0.20944 : 0.20944
         var destination = pivot.transform
         destination.rotation = simd_quatf(angle: angle, axis: SIMD3<Float>(1, 0, 0))
+        pivot.stopAllAnimations(recursive: false)
         if reduceMotion {
             pivot.transform = destination
         } else {
             pivot.move(to: destination, relativeTo: pivot.parent, duration: 0.18, timingFunction: .easeInOut)
         }
+    }
+}
+
+#Preview("Mechanical rocker styles") {
+    RockerToggleStylesPreview()
+        .padding()
+}
+
+#Preview("Mechanical rocker USDZ") {
+    VStack(spacing: 16) {
+        StudyRocker3DModelView(isOn: false)
+            .frame(width: 232, height: 156)
+        StudyRocker3DModelView(isOn: true)
+            .frame(width: 232, height: 156)
+    }
+    .padding()
+}
+
+private struct RockerToggleStylesPreview: View {
+    @State private var coreGraphicsIsOn = false
+    @State private var model3DIsOn = true
+    @State private var imageIsOn = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Toggle("Core Graphics", isOn: $coreGraphicsIsOn)
+                .toggleStyle(StudyRockerToggleStyle())
+
+            Toggle("USDZ 3D", isOn: $model3DIsOn)
+                .toggleStyle(StudyRocker3DToggleStyle())
+
+            Toggle("Static images", isOn: $imageIsOn)
+                .toggleStyle(StudyRockerImageToggleStyle())
+
+            Toggle("Disabled rocker", isOn: .constant(true))
+                .toggleStyle(StudyRockerToggleStyle())
+                .disabled(true)
+        }
+        .frame(maxWidth: 420, alignment: .leading)
     }
 }

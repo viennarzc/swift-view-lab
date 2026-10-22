@@ -8,6 +8,12 @@ struct MechanicalRockerSwitchStudyView: View {
     @State private var isEnabled = true
     @State private var activationCount = 0
     @State private var variation = RockerVariation.coreGraphics
+    @State private var modelX: Float = 0
+    @State private var modelY: Float = 0
+    @State private var modelZ: Float = 0
+    @State private var modelPitch: Float = 0
+    @State private var modelYaw: Float = 0
+    @State private var modelRoll: Float = 0
 
     var body: some View {
         Form {
@@ -16,8 +22,20 @@ struct MechanicalRockerSwitchStudyView: View {
                 variation: variation,
                 isOn: $isOn,
                 isEnabled: isEnabled,
-                activationCount: activationCount
+                activationCount: activationCount,
+                position: SIMD3(modelX, modelY, modelZ),
+                rotation: SIMD3(modelPitch, modelYaw, modelRoll)
             )
+            if variation == .model3D {
+                Rocker3DTransformSection(
+                    modelX: $modelX,
+                    modelY: $modelY,
+                    modelZ: $modelZ,
+                    modelPitch: $modelPitch,
+                    modelYaw: $modelYaw,
+                    modelRoll: $modelRoll
+                )
+            }
             RockerSettingsSection(
                 isEnabled: $isEnabled,
                 reset: reset
@@ -34,6 +52,12 @@ struct MechanicalRockerSwitchStudyView: View {
     private func reset() {
         isOn = false
         activationCount = 0
+        modelX = 0
+        modelY = 0
+        modelZ = 0
+        modelPitch = 0
+        modelYaw = 0
+        modelRoll = 0
     }
 }
 
@@ -65,10 +89,18 @@ private struct RockerPreviewSection: View {
     @Binding var isOn: Bool
     let isEnabled: Bool
     let activationCount: Int
+    let position: SIMD3<Float>
+    let rotation: SIMD3<Float>
 
     var body: some View {
         Section("Live preview") {
-            RockerTogglePreview(variation: variation, isOn: $isOn, isEnabled: isEnabled)
+            RockerTogglePreview(
+                variation: variation,
+                isOn: $isOn,
+                isEnabled: isEnabled,
+                position: position,
+                rotation: rotation
+            )
                 .padding(.vertical, 18)
             LabeledContent("State", value: isOn ? "On" : "Off")
             LabeledContent("Activations") {
@@ -88,6 +120,8 @@ private struct RockerTogglePreview: View {
     let variation: RockerVariation
     @Binding var isOn: Bool
     let isEnabled: Bool
+    let position: SIMD3<Float>
+    let rotation: SIMD3<Float>
 
     @ViewBuilder var body: some View {
         switch variation {
@@ -97,12 +131,63 @@ private struct RockerTogglePreview: View {
                 .disabled(!isEnabled)
         case .model3D:
             Toggle("Main power", isOn: $isOn)
-                .toggleStyle(StudyRocker3DToggleStyle())
+                .toggleStyle(StudyRocker3DToggleStyle(position: position, rotation: rotation))
                 .disabled(!isEnabled)
         case .staticImages:
             Toggle("Main power", isOn: $isOn)
                 .toggleStyle(StudyRockerImageToggleStyle())
                 .disabled(!isEnabled)
+        }
+    }
+}
+
+private struct Rocker3DTransformSection: View {
+    @Binding var modelX: Float
+    @Binding var modelY: Float
+    @Binding var modelZ: Float
+    @Binding var modelPitch: Float
+    @Binding var modelYaw: Float
+    @Binding var modelRoll: Float
+
+    var body: some View {
+        Section("3D transform") {
+            RockerTransformSlider("Position X", value: $modelX, range: -0.6...0.6)
+            RockerTransformSlider("Position Y", value: $modelY, range: -0.6...0.6)
+            RockerTransformSlider("Position Z", value: $modelZ, range: -0.6...0.6)
+            RockerTransformSlider("Pitch", value: $modelPitch, range: -180...180, suffix: "°")
+            RockerTransformSlider("Yaw", value: $modelYaw, range: -180...180, suffix: "°")
+            RockerTransformSlider("Roll", value: $modelRoll, range: -180...180, suffix: "°")
+        }
+    }
+}
+
+private struct RockerTransformSlider: View {
+    let title: String
+    @Binding var value: Float
+    let range: ClosedRange<Float>
+    let suffix: String
+
+    init(
+        _ title: String,
+        value: Binding<Float>,
+        range: ClosedRange<Float>,
+        suffix: String = ""
+    ) {
+        self.title = title
+        _value = value
+        self.range = range
+        self.suffix = suffix
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent(title) {
+                Text(value, format: .number.precision(.fractionLength(2)))
+                    .monospacedDigit()
+                    + Text(suffix)
+            }
+            Slider(value: $value, in: range)
+                .accessibilityValue("\(value.formatted(.number.precision(.fractionLength(2))))\(suffix)")
         }
     }
 }
