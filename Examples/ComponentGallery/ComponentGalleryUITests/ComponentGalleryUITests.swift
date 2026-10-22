@@ -60,4 +60,33 @@ final class ComponentGalleryUITests: XCTestCase {
         button.tap()
         XCTAssertEqual(app.staticTexts["actionCount"].label, "Actions, 3")
     }
+
+    func testMechanicalRockerRenderersPreserveState() {
+        let app = XCUIApplication()
+        continueAfterFailure = false
+        app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+
+        app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Mechanical rocker")).firstMatch.tap()
+        // A ToggleStyle preserves the toggle role in the accessibility tree,
+        // even though its visible renderer is backed by a native Button.
+        let rocker = app.descendants(matching: .any)["mechanicalRocker"].firstMatch
+        XCTAssertTrue(rocker.waitForExistence(timeout: 5))
+        rocker.tap()
+        XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 1")
+
+        app.segmentedControls.buttons["USDZ 3D"].tap()
+        XCTAssertEqual(app.staticTexts["State"].label, "State, On")
+        XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 1")
+        rocker.tap()
+        XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 2")
+
+        app.segmentedControls.buttons["Static images"].tap()
+        XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 2")
+        let enabled = app.switches["Rocker enabled"]
+        enabled.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertFalse(rocker.isEnabled)
+        rocker.tap()
+        XCTAssertEqual(app.staticTexts["rockerActivationCount"].label, "Activations, 2")
+    }
 }

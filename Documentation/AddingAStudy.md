@@ -8,7 +8,7 @@ Create a folder under `Examples/ComponentGallery/ComponentGallery/Studies/<Study
 - A SwiftUI demonstration
 - A UIKit demonstration hosted through `UIViewRepresentable` or `UIViewControllerRepresentable`
 
-Start with the animated button study as a working example. Keep experimental components here until their reuse boundary is clear. Xcode's synchronized folders include new source files automatically; you do not need to edit the project file.
+Start with the animated button study as a working example. Keep experimental components here until their reuse boundary is clear. A renderer comparison that is intentionally SwiftUI-only, such as the Mechanical Rocker Switch, should state that exception in its documentation and preserve shared state across renderers. Xcode's synchronized folders include new source files automatically; you do not need to edit the project file.
 
 ## 2. Match the behavior
 

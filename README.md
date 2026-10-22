@@ -13,7 +13,7 @@ A small laboratory for custom iOS interfaces: the same idea explored in **SwiftU
 1. Clone [viennarzc/swift-view-lab](https://github.com/viennarzc/swift-view-lab) or download its source.
 2. Open `Examples/ComponentGallery/ComponentGallery.xcodeproj` in Xcode.
 3. Select the **ComponentGallery** scheme and an iPhone or iPad simulator, then click **Run**.
-4. Choose **Thermostat dial** or **Animated button** in the gallery. Switch between SwiftUI and UIKit, adjust the demo settings, and compare the paired implementations.
+4. Choose **Thermostat dial**, **Animated button**, or **Mechanical rocker switch** in the gallery. The paired studies compare SwiftUI and UIKit; the rocker compares three SwiftUI rendering techniques.
 
 The gallery keeps each study's demo state above the framework switcher, so changing implementations preserves the selected value and settings. For a physical device, choose your own development team and a unique bundle identifier in the app target's Signing & Capabilities settings.
 
@@ -26,6 +26,7 @@ The gallery keeps each study's demo state above the framework switcher, so chang
 | --- | --- | --- | --- |
 | [Thermostat dial](Documentation/Studies/ThermostatDial.md) | `StudyThermostatDial` | `StudyThermostatDial` | Reusable, experimental API |
 | [Animated button](Documentation/Studies/AnimatedButton.md) | `StudyButtonStyle` | `StudyButton` | Reusable, experimental API |
+| [Mechanical rocker switch](Documentation/Studies/MechanicalRockerSwitch.md) | Three `StudyRocker…ToggleStyle` types | — | Reusable, SwiftUI-only renderer study |
 
 Experiments live in the gallery. Components promoted for reuse live in the package. APIs may change before the first stable release.
 
@@ -96,6 +97,15 @@ dial.addAction(UIAction { _ in
 ```
 
 The UIKit control sends `.valueChanged` for user changes; assigning `temperature` updates it without sending an event. See the [thermostat guide](Documentation/Studies/ThermostatDial.md) for configuration, interaction, accessibility, and implementation details.
+
+The Mechanical Rocker Switch is intentionally SwiftUI-only because it compares three SwiftUI renderers for the same `Toggle` state. Use it like any native toggle style:
+
+```swift
+Toggle("Main power", isOn: $isPowered)
+    .toggleStyle(StudyRockerToggleStyle())
+```
+
+The package also includes `StudyRocker3DToggleStyle` and `StudyRockerImageToggleStyle`. See the [rocker guide](Documentation/Studies/MechanicalRockerSwitch.md) for the model, resources, and tradeoffs.
 
 ## Explore and modify
 

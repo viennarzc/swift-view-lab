@@ -9,7 +9,10 @@ let package = Package(
         .library(name: "StudyUIKit", targets: ["StudyUIKit"])
     ],
     targets: [
-        .target(name: "StudySwiftUI"),
+        .target(
+            name: "StudySwiftUI",
+            resources: [.process("MechanicalRocker/Resources")]
+        ),
         .target(name: "StudyUIKit"),
         .testTarget(name: "StudySwiftUITests", dependencies: ["StudySwiftUI"]),
         .testTarget(name: "StudyUIKitTests", dependencies: ["StudyUIKit"])
