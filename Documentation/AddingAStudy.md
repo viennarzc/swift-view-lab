@@ -38,6 +38,8 @@ Create `Documentation/Studies/<StudyName>.md` with:
 
 Add the study to the README table. Capture screenshots from the actual gallery and store them under `Documentation/Images/`; use relative links in public docs.
 
+For a study with layered implementation, several renderers, or a complex interaction, also create `Documentation/Studies/<StudyName>Tutorial.html`. Follow the [interactive learning guide](InteractiveLearning.md) for its step order, accessible HTML template, screenshots, focused capture test, and validation checklist.
+
 ## 5. Promote for reuse
 
 Move the reusable implementation into `Sources/StudySwiftUI/<StudyName>/` and `Sources/StudyUIKit/<StudyName>/`. Add public access only to the component and its intentional configuration API. Document public symbols and defaults.

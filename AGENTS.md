@@ -20,6 +20,7 @@ This repository explores custom iOS components through paired SwiftUI and UIKit 
 - Prefer small concrete views and minimal public APIs. Add documentation to public symbols.
 - Keep third-party dependencies out unless explicitly authorized.
 - Register each study in `Catalog/Study.swift` and document paired behavior.
+- For a study that needs a guided implementation tutorial, follow `Documentation/InteractiveLearning.md`; keep it aligned with the gallery and source rather than a parallel sample.
 - Credit inspiration and preserve required source licenses.
 
 ## Validation

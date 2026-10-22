@@ -127,6 +127,7 @@ Open the project in Xcode to edit Swift files and use the **ComponentGallery** s
 | `Tests/` | Shared geometry and UIKit control behavior tests |
 | `Documentation/Studies/` | Study explanations, examples, and credits |
 | [AddingAStudy.md](Documentation/AddingAStudy.md) | Step-by-step workflow for the next study |
+| [InteractiveLearning.md](Documentation/InteractiveLearning.md) | Template and review checklist for component tutorials |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution and review expectations |
 
 ## Build and verify
